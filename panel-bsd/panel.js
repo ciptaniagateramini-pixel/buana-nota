@@ -2,8 +2,8 @@
 const COMPANY={nama:'CV BUANA SASTRA DAHANA',
   alamat:'Kp. Cikadu RT 019 RW 006, Kec. Sukatani, Kab. Purwakarta',
   telp:'0812-1429-6499',
-  npwp:'',      // isi NPWP perusahaan, mis. '00.000.000.0-000.000'
-  bayar:[]      // panduan pembayaran, satu baris per elemen, mis. ['Transfer Bank Mandiri a.n. CV Buana Sastra Dahana','No. Rek: 000000000']
+  npwp:'1000 0000 1076 7902',
+  bayar:['Pembayaran ditransfer ke rekening Bank Mandiri','a.n. CV BUANA SASTRA DAHANA']  // tambahkan baris "No. Rekening: ..." bila nomor sudah ada
 };
 const GROUPS={'Hitungan':['pcs','unit','set','pasang','buah','lembar','batang','biji'],'Kemasan':['sak','dus','box','kaleng','botol','pack','bungkus','roll','ikat','karung'],'Ukuran':['kg','ton','gram','liter','meter','m²','m³'],'Lain-lain':['truk','rit','lot']};
 const ALL_SAT=Object.values(GROUPS).flat();
