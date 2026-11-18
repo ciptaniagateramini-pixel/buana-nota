@@ -243,13 +243,25 @@ function signatures(doc,y,labels){
   const w=182/labels.length;
   labels.forEach((l,i)=>{const cx=14+w*i+w/2;doc.setFont('helvetica','normal');doc.setFontSize(9.5);doc.text(l,cx,y,{align:'center'});doc.line(cx-w/2+8,y+22,cx+w/2-8,y+22)});
 }
+function watermark(doc){
+  const t='CV BSD ORDER';
+  for(let i=1;i<=doc.getNumberOfPages();i++){
+    doc.setPage(i);
+    doc.saveGraphicsState();
+    doc.setGState(new doc.GState({opacity:0.09}));
+    doc.setFont('helvetica','bold');doc.setFontSize(58);doc.setTextColor(74,44,18);
+    const w=doc.getTextWidth(t),k=Math.SQRT1_2;
+    doc.text(t,105-(w/2)*k,148.5+(w/2)*k,{angle:45});
+    doc.restoreGraphicsState();
+  }
+}
 function makeNota(o){
   const doc=new window.jspdf.jsPDF({unit:'mm',format:'a4'});
   let y=pdfHead(doc,'NOTA PENJUALAN');
   y=infoBlock(doc,y,'Kepada Yth.',o,[['No. Nota',o.noNota],['Tanggal',fmtDate(o.tglNota)],['No. Order',o.noOrder],['Pembayaran',o.bayar]]);
   doc.autoTable({startY:y,theme:'grid',head:[['No','Nama Barang','Jumlah','Satuan','Harga Satuan','Jumlah (Rp)']],
     body:o.items.map((i,k)=>[k+1,i.nama+(i.ket?'\n'+i.ket:''),i.qty,i.satuan,rp(i.harga),rp(num(i.qty)*num(i.harga))]),
-    styles:{fontSize:9,cellPadding:2,textColor:[31,42,55]},headStyles:{fillColor:[74,44,18],halign:'center'},
+    styles:{fontSize:9,cellPadding:2,textColor:[31,42,55]},headStyles:{fillColor:[74,44,18],textColor:[255,255,255],halign:'center',fontStyle:'bold'},
     columnStyles:{0:{cellWidth:10,halign:'center'},2:{cellWidth:18,halign:'right'},3:{cellWidth:20},4:{cellWidth:30,halign:'right'},5:{cellWidth:32,halign:'right'}},margin:{left:14,right:14}});
   y=doc.lastAutoTable.finalY+6;if(y>235){doc.addPage();y=20}
   const line=(k,v,bold)=>{doc.setFont('helvetica',bold?'bold':'normal');doc.setFontSize(bold?11:9.5);doc.text(k,140,y);doc.text(v,196,y,{align:'right'});y+=bold?7:5.5};
@@ -267,6 +279,7 @@ function makeNota(o){
     COMPANY.bayar.forEach(b=>{const l=doc.splitTextToSize(b,120);doc.text(l,14,ey);ey+=l.length*4.2});
   }
   signatures(doc,Math.max(y+6,ey+4),['Penerima','Hormat kami']);
+  watermark(doc);
   return doc;
 }
 function makeSJ(o){
@@ -275,12 +288,13 @@ function makeSJ(o){
   y=infoBlock(doc,y,'Dikirim kepada',o,[['No. SJ',o.noSJ],['Tanggal',fmtDate(o.tglSJ)],['Ref. Nota',o.noNota],['Driver',o.driver],['No. Plat',o.plat]]);
   doc.autoTable({startY:y,theme:'grid',head:[['No','Nama Barang','Jumlah','Satuan','Keterangan']],
     body:o.items.map((i,k)=>[k+1,i.nama,i.qty,i.satuan,i.ket||'']),
-    styles:{fontSize:9.5,cellPadding:2.4,textColor:[31,42,55]},headStyles:{fillColor:[74,44,18],halign:'center'},
+    styles:{fontSize:9.5,cellPadding:2.4,textColor:[31,42,55]},headStyles:{fillColor:[74,44,18],textColor:[255,255,255],halign:'center',fontStyle:'bold'},
     columnStyles:{0:{cellWidth:10,halign:'center'},2:{cellWidth:22,halign:'right'},3:{cellWidth:24},4:{cellWidth:50}},margin:{left:14,right:14}});
   y=doc.lastAutoTable.finalY+6;
   doc.setFont('helvetica','italic');doc.setFontSize(9);
   doc.text('Barang telah diterima dalam keadaan baik dan jumlah sesuai.',14,y);
   signatures(doc,y+10,['Penerima','Driver','Pengirim']);
+  watermark(doc);
   return doc;
 }
 

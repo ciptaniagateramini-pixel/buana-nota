@@ -2,3 +2,8 @@ Options -Indexes
 <FilesMatch "\.(sql|log|md)$">
 Require all denied
 </FilesMatch>
+<IfModule mod_headers.c>
+<FilesMatch "\.(js|css|html|php)$">
+Header set Cache-Control "no-cache, must-revalidate"
+</FilesMatch>
+</IfModule>
