@@ -37,7 +37,7 @@ const grand=o=>subtotal(o)-num(o.diskon)+num(o.ongkir);
 
 /* ===== login ===== */
 function showLogin(){
-  clearInterval(pollT);user=null;$('#app').hidden=true;$('#login').hidden=false;$('#l-pin').value='';
+  clearInterval(pollT);user=null;$('#app').hidden=true;$('#app-head').style.display='none';$('#login').hidden=false;$('#l-pin').value='';
 }
 $('#l-go').onclick=doLogin;$('#l-pin').addEventListener('keydown',e=>{if(e.key==='Enter')doLogin()});
 async function doLogin(){
@@ -49,7 +49,7 @@ $('#logout').onclick=async()=>{try{await api('logout',{body:{}})}catch(e){}showL
 async function boot(){
   const j=await api('me');
   if(!j.user){showLogin();return}
-  user=j.user;$('#login').hidden=true;$('#app').hidden=false;
+  user=j.user;$('#login').hidden=true;$('#app').hidden=false;$('#app-head').style.display='flex';
   $('#who').textContent=user.nama+(user.role==='admin'?' (admin)':'');
   $('#tab-user').hidden=user.role!=='admin';
   await loadOrders();setTab('order');
