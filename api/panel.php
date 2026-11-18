@@ -132,6 +132,18 @@ if($act==='cancel'&&$post){
   json_out(['order'=>fmt_order(load_order((int)$o['id']),true)]);
 }
 
+if($act==='delete_order'&&$post){
+  if($U['role']!=='admin') fail('Hanya admin yang boleh menghapus.',403);
+  $o=load_order((int)($d["id"]??0));
+  if($o['status']!=='Batal') fail('Batalkan order dulu sebelum dihapus.',409);
+  $pdo=db();$pdo->beginTransaction();
+  $pdo->prepare("DELETE FROM order_items WHERE order_id=?")->execute([$o['id']]);
+  $pdo->prepare("DELETE FROM log WHERE order_id=?")->execute([$o['id']]);
+  $pdo->prepare("DELETE FROM orders WHERE id=?")->execute([$o['id']]);
+  $pdo->commit();
+  json_out(['ok'=>true]);
+}
+
 /* ---------- rekap ---------- */
 function pel_filter(): array {
   $q=trim((string)($_GET['q']??''));if($q==='') return ['',[]];

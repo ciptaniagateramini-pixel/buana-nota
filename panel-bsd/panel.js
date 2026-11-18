@@ -31,7 +31,7 @@ async function api(action,{q='',body=null}={}){
 }
 
 /* ===== state ===== */
-let user=null,orders=[],sel=null,draft=null,dirty=false,filter='Semua',armCancel=false,tab='order',pollT=null;
+let user=null,orders=[],sel=null,draft=null,dirty=false,filter='Semua',armCancel=false,armDel=false,tab='order',pollT=null;
 const subtotal=o=>o.items.reduce((s,i)=>s+num(i.qty)*num(i.harga),0);
 const grand=o=>subtotal(o)-num(o.diskon)+num(o.ongkir);
 
@@ -122,6 +122,7 @@ function renderDetail(){
     if(o.status==='Masuk'||user.role==='admin')h+=`<button class="btn warn${armCancel?' armed':''}" data-act="cancel">${armCancel?'Klik lagi untuk membatalkan order':'Batalkan order'}</button>`;
     h+='</div>';
   }
+  if(closed&&user.role==='admin')h+=`<div class="actions" style="border-top:1px solid var(--line);padding-top:14px"><button class="btn warn${armDel?' armed':''}" data-act="delete">${armDel?'Klik lagi: hapus permanen':'Hapus permanen'}</button></div>`;
   if(o.log&&o.log.length)h+=`<details><summary>Riwayat aktivitas</summary><ul style="margin:6px 0;padding-left:20px;font-size:13px;color:#475569">${o.log.map(l=>`<li>${fmtDT(l.at)} · ${esc(l.aksi)}${l.detail?' ('+esc(l.detail)+')':''}${l.oleh?' · '+esc(l.oleh):''}</li>`).join('')}</ul></details>`;
   el.innerHTML=h;
 }
@@ -146,6 +147,7 @@ const safe=s=>String(s).replace(/[^\w\-]+/g,'_').slice(0,30);
 $('#detail').addEventListener('click',async e=>{
   const b=e.target.closest('[data-act]');if(!b||!draft)return;const a=b.dataset.act,o=draft;
   if(a!=='cancel'&&armCancel)armCancel=false;
+  if(a!=='delete'&&armDel)armDel=false;
   if(a==='add-row'){o.items.push({nama:'',qty:1,satuan:'pcs',ket:'',harga:0});dirty=true;renderDetail()}
   else if(a==='del-row'){o.items.splice(+b.dataset.i,1);dirty=true;renderDetail()}
   else if(a==='save')await run('save_draft',pl(o),'Draft tersimpan');
@@ -154,6 +156,7 @@ $('#detail').addEventListener('click',async e=>{
   else if(a==='issue-sj'){b.disabled=true;await run('issue_sj',{id:o.id,driver:$('#drv').value,plat:$('#plat').value},'Surat jalan terbit');b.disabled=false}
   else if(a==='pdf-sj')makeSJ(o).save('SuratJalan_'+o.noSJ.replace(/\//g,'-')+'_'+safe(o.pemesan.nama)+'.pdf');
   else if(a==='finish')await run('finish',{id:o.id},'Order selesai');
+  else if(a==='delete'){if(!armDel){armDel=true;renderDetail();return}try{await api('delete_order',{body:{id:o.id}});armDel=false;toast('Order dihapus');draft=null;sel=null;$('#detail').innerHTML='';await loadOrders()}catch(err){armDel=false;toast(err.message||'Gagal menghapus')}}
   else if(a==='cancel'){if(!armCancel){armCancel=true;renderDetail();return}await run('cancel',{id:o.id},'Order dibatalkan')}
 });
 
