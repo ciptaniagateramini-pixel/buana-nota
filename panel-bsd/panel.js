@@ -1,5 +1,10 @@
 
-const COMPANY={nama:'CV BUANA SASTRA DAHANA',alamat:'',telp:''};
+const COMPANY={nama:'CV BUANA SASTRA DAHANA',
+  alamat:'Kp. Cikadu RT 019 RW 006, Kec. Sukatani, Kab. Purwakarta',
+  telp:'0812-1429-6499',
+  npwp:'',      // isi NPWP perusahaan, mis. '00.000.000.0-000.000'
+  bayar:[]      // panduan pembayaran, satu baris per elemen, mis. ['Transfer Bank Mandiri a.n. CV Buana Sastra Dahana','No. Rek: 000000000']
+};
 const GROUPS={'Hitungan':['pcs','unit','set','pasang','buah','lembar','batang','biji'],'Kemasan':['sak','dus','box','kaleng','botol','pack','bungkus','roll','ikat','karung'],'Ukuran':['kg','ton','gram','liter','meter','m²','m³'],'Lain-lain':['truk','rit','lot']};
 const ALL_SAT=Object.values(GROUPS).flat();
 const STATUS=['Masuk','Nota terbit','Surat jalan terbit','Selesai','Batal'];
@@ -215,8 +220,9 @@ function pdfHead(doc,title){
   const tx=14+lw+5;
   doc.setFont('helvetica','bold');doc.setFontSize(15);doc.text(COMPANY.nama,tx,19);
   doc.setFont('helvetica','normal');doc.setFontSize(9);let y=24;
-  if(COMPANY.alamat){doc.text(COMPANY.alamat,tx,y);y+=4.5}
-  if(COMPANY.telp){doc.text('Telp: '+COMPANY.telp,tx,y);y+=4.5}
+  if(COMPANY.alamat){const al=doc.splitTextToSize(COMPANY.alamat,196-tx);doc.text(al,tx,y);y+=al.length*4.5}
+  const kon=[COMPANY.telp?'Telp: '+COMPANY.telp:'',COMPANY.npwp?'NPWP: '+COMPANY.npwp:''].filter(Boolean).join('   |   ');
+  if(kon){doc.text(kon,tx,y);y+=4.5}
   y=Math.max(y,34);
   doc.setLineWidth(.6);doc.setDrawColor(74,44,18);doc.line(14,y,196,y);
   doc.setFont('helvetica','bold');doc.setFontSize(13);doc.setTextColor(31,42,55);doc.text(title,105,y+8,{align:'center'});
@@ -254,7 +260,13 @@ function makeNota(o){
   doc.setFont('helvetica','italic');doc.setFontSize(9);
   const tb='Terbilang: '+terbilang(grand(o)).replace(/^./,c=>c.toUpperCase())+' rupiah';
   const tl=doc.splitTextToSize(tb,120);doc.text(tl,14,y-12);
-  signatures(doc,Math.max(y+6,y-12+tl.length*4.5+8),['Penerima','Hormat kami']);
+  let ey=y-12+tl.length*4.5+4;
+  if(COMPANY.bayar.length){
+    doc.setFont('helvetica','bold');doc.setFontSize(9);doc.text('Panduan Pembayaran',14,ey);ey+=4.5;
+    doc.setFont('helvetica','normal');
+    COMPANY.bayar.forEach(b=>{const l=doc.splitTextToSize(b,120);doc.text(l,14,ey);ey+=l.length*4.2});
+  }
+  signatures(doc,Math.max(y+6,ey+4),['Penerima','Hormat kami']);
   return doc;
 }
 function makeSJ(o){
