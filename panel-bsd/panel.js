@@ -278,7 +278,7 @@ function makeNota(o){
     doc.setFont('helvetica','normal');
     COMPANY.bayar.forEach(b=>{const l=doc.splitTextToSize(b,120);doc.text(l,14,ey);ey+=l.length*4.2});
   }
-  signatures(doc,Math.max(y+6,ey+4),['Penerima','Hormat kami']);
+  signatures(doc,Math.max(y+6,ey+10),['Penerima','Hormat kami']);
   watermark(doc);
   return doc;
 }
