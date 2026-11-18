@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="id"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex,nofollow"><title>Panel Petugas – CV Buana Sastra Dahana</title>
+<link rel="stylesheet" href="../style.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
+</head><body>
+<header class="top"><div class="row"><img class="logo" src="../logo.jpg" alt="Logo"><h1>CV BUANA SASTRA DAHANA<small>Panel Petugas</small></h1></div>
+<div class="row" id="app-head" style="gap:10px"><span class="mode" id="who"></span>
+<div class="tabs"><button id="tab-order" class="on">Order <span id="cnt-new"></span></button><button id="tab-rekap">Rekap</button><button id="tab-user" hidden>Pengguna</button></div>
+<button class="chip" id="my-pin" style="background:rgba(255,255,255,.18);color:#fff;border:0">Ganti PIN</button><button class="chip" id="logout" style="background:rgba(255,255,255,.18);color:#fff;border:0">Keluar</button></div></header>
+<main>
+<section id="login" class="card login" hidden><h2>Masuk Petugas</h2>
+<label>Nama</label><input id="l-nama" autocomplete="username"><div style="height:12px"></div>
+<label>PIN (6 angka)</label><input id="l-pin" type="password" inputmode="numeric" maxlength="6" autocomplete="current-password">
+<p class="note" id="l-err" style="color:var(--red)"></p><div class="actions" style="margin-top:6px"><button class="btn" id="l-go">Masuk</button></div>
+<p class="note" style="margin-top:12px">Perangkat ini akan diingat 60 hari.</p></section>
+<div id="app" hidden>
+<section id="v-order"><div class="split"><div class="card"><h2>Order masuk</h2><div class="chips" id="chips"></div><div id="olist"></div></div><div class="card" id="detail"></div></div></section>
+<section id="v-rekap" class="card" hidden><div class="row" style="justify-content:space-between"><h2 style="margin:0">Rekap bulanan</h2>
+<div class="row"><input id="bulan" type="month" style="width:auto"><button class="btn ghost sm" id="csv">⬇ Ekspor Excel (CSV)</button></div></div><div id="rekap"></div></section>
+<section id="v-user" class="card" hidden><h2>Pengguna</h2><div id="ulist"></div>
+<h3>Tambah petugas</h3><div class="row"><input id="u-nama" placeholder="Nama" style="width:200px"><input id="u-pin" placeholder="PIN 6 angka" inputmode="numeric" maxlength="6" style="width:150px"><select id="u-role" style="width:130px"><option value="petugas">Petugas</option><option value="admin">Admin</option></select><button class="btn sm" id="u-add">Tambah</button></div>
+</section>
+</div></main><div class="toast" id="toast"></div>
+<script src="logo.js"></script><script src="panel.js"></script></body></html>

@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="id"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Form Pemesanan – CV Buana Sastra Dahana</title><link rel="stylesheet" href="style.css"></head>
+<body>
+<header class="top"><div class="row"><img class="logo" src="logo.jpg" alt="Logo"><h1>CV BUANA SASTRA DAHANA<small>Form Pemesanan Barang</small></h1></div></header>
+<main><section class="card" style="max-width:820px;margin:0 auto">
+<div id="form-wrap">
+<h2>Form Pemesanan Barang</h2>
+<p class="note" style="margin-top:-6px">Isi data Anda dan daftar barang yang dibutuhkan. Harga akan dikonfirmasi oleh petugas kami.</p>
+<h3>Data pemesan</h3>
+<div class="grid2">
+<div><label for="f-nama">Nama *</label><input id="f-nama" autocomplete="name" maxlength="120"></div>
+<div><label for="f-kontak">No. HP / WhatsApp *</label><input id="f-kontak" inputmode="tel" autocomplete="tel" maxlength="40"></div>
+<div><label for="f-email">Email</label><input id="f-email" type="email" autocomplete="email" maxlength="120"></div><div></div>
+<div class="full"><label for="f-alamat">Alamat *</label><textarea id="f-alamat" rows="2" maxlength="600"></textarea></div>
+</div>
+<div class="hp" aria-hidden="true"><label>Website</label><input id="f-website" tabindex="-1" autocomplete="off"></div>
+<h3>Daftar barang</h3><div id="rows"></div>
+<button type="button" class="btn ghost sm" id="add-row">+ Tambah barang</button>
+<div class="actions"><button type="button" class="btn" id="submit-order">Kirim Pesanan</button></div>
+<p class="note" id="form-err" style="color:var(--red);margin-top:10px"></p>
+</div>
+<div id="done-wrap" class="ok" hidden><h2>Pesanan terkirim ✓</h2><p>Nomor pesanan Anda: <b id="done-no"></b></p>
+<p class="note">Simpan nomor ini. Petugas kami akan memproses pesanan dan menghubungi Anda.</p><button type="button" class="btn" id="new-order">Buat pesanan baru</button></div>
+</section></main>
+<script src="form.js"></script></body></html>
