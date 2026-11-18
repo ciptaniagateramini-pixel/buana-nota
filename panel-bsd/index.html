@@ -17,10 +17,13 @@
 <p class="note" style="margin-top:12px">Perangkat ini akan diingat 60 hari.</p></section>
 <div id="app" hidden>
 <section id="v-order"><div class="split"><div class="card"><h2>Order masuk</h2><div class="chips" id="chips"></div><div id="olist"></div></div><div class="card" id="detail"></div></div></section>
-<section id="v-rekap" class="card" hidden><div class="row" style="justify-content:space-between"><h2 style="margin:0">Rekap bulanan</h2>
-<div class="row"><input id="bulan" type="month" style="width:auto"><button class="btn ghost sm" id="csv">⬇ Ekspor Excel (CSV)</button></div></div><div id="rekap"></div></section>
+<section id="v-rekap" class="card" hidden><h2 style="margin:0 0 10px">Rekap</h2>
+<div class="row" style="margin-bottom:6px"><select id="periode" style="width:auto"><option value="bulan">Per bulan</option><option value="semua">Semua waktu</option></select>
+<input id="bulan" type="month" style="width:auto"><input id="cari" placeholder="Cari pelanggan, mis. SDN 3 Plered" style="flex:1;min-width:200px">
+<button class="btn ghost sm" id="reset">Semua pelanggan</button><button class="btn ghost sm" id="csv">⬇ Ekspor Excel (CSV)</button></div>
+<p class="note" id="rekap-ket" style="margin:0 0 6px"></p><div id="rekap"></div></section>
 <section id="v-user" class="card" hidden><h2>Pengguna</h2><div id="ulist"></div>
 <h3>Tambah petugas</h3><div class="row"><input id="u-nama" placeholder="Nama" style="width:200px"><input id="u-pin" placeholder="PIN 6 angka" inputmode="numeric" maxlength="6" style="width:150px"><select id="u-role" style="width:130px"><option value="petugas">Petugas</option><option value="admin">Admin</option></select><button class="btn sm" id="u-add">Tambah</button></div>
 </section>
 </div></main><div class="toast" id="toast"></div>
-<script src="logo.js?v=3"></script><script src="panel.js?v=4"></script></body></html>
+<script src="logo.js?v=3"></script><script src="panel.js?v=5"></script></body></html>

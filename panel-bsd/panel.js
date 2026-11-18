@@ -159,14 +159,23 @@ $('#detail').addEventListener('click',async e=>{
 
 /* ===== rekap ===== */
 $('#bulan').value=new Date().toISOString().slice(0,7);
+const rekapQ=()=>'&bulan='+($('#periode').value==='semua'?'semua':$('#bulan').value)+'&q='+encodeURIComponent($('#cari').value.trim());
+let cariT=null;
 $('#bulan').addEventListener('change',loadRekap);
-$('#csv').onclick=()=>{location.href='../api/panel.php?action=export_csv&bulan='+$('#bulan').value};
+$('#periode').addEventListener('change',()=>{$('#bulan').style.display=$('#periode').value==='semua'?'none':'';loadRekap()});
+$('#cari').addEventListener('input',()=>{clearTimeout(cariT);cariT=setTimeout(loadRekap,350)});
+$('#reset').onclick=()=>{$('#cari').value='';loadRekap()};
+$('#csv').onclick=()=>{location.href='../api/panel.php?action=export_csv'+rekapQ()};
+$('#rekap').addEventListener('click',e=>{const b=e.target.closest('[data-pel]');if(!b)return;$('#cari').value=b.dataset.pel;loadRekap()});
 async function loadRekap(){
   try{
-    const j=await api('rekap',{q:'&bulan='+$('#bulan').value});
-    const st=j.orderPerStatus;
-    $('#rekap').innerHTML=`<div class="stat"><div><b>${rp(j.omzet)}</b><span>Total nota (tidak termasuk batal)</span></div><div><b>${rp(j.lunas)}</b><span>Lunas</span></div><div><b>${rp(j.dp)}</b><span>DP / sebagian</span></div><div><b>${rp(j.belumBayar)}</b><span>Belum bayar (piutang)</span></div><div><b>${j.nota.length}</b><span>Nota terbit (${j.batal} batal)</span></div><div><b>${Object.values(st).reduce((a,b)=>a+(+b),0)}</b><span>Order masuk bulan ini</span></div></div>
-    <h3>Daftar nota</h3><div class="tablewrap"><table class="plain"><thead><tr><th>No. Nota</th><th>Tanggal</th><th>Pelanggan</th><th>Pembayaran</th><th>Status</th><th class="r">Total</th></tr></thead><tbody>${j.nota.length?j.nota.map(n=>`<tr><td>${esc(n.noNota)}</td><td>${fmtDate(n.tgl)}</td><td>${esc(n.nama)}</td><td>${n.bayar}</td><td>${n.status}</td><td class="r">${rp(n.total)}</td></tr>`).join(''):'<tr><td colspan="6" class="note">Belum ada nota bulan ini.</td></tr>'}</tbody></table></div>
+    const j=await api('rekap',{q:rekapQ()});
+    const st=j.orderPerStatus,cari=$('#cari').value.trim();
+    $('#rekap-ket').textContent=(j.bulan==='semua'?'Semua waktu':'Bulan '+j.bulan)+' · '+(cari?'pelanggan: "'+cari+'"':'semua pelanggan');
+    const pelTbl=cari?'':`<h3>Per pelanggan</h3><div class="tablewrap"><table class="plain"><thead><tr><th>Pelanggan</th><th class="r">Jumlah nota</th><th class="r">Total</th><th class="r">Belum lunas</th></tr></thead><tbody>${j.perPelanggan.length?j.perPelanggan.map(p=>`<tr><td><a href="#" data-pel="${esc(p.nama)}" onclick="return false" style="color:var(--acc);font-weight:600">${esc(p.nama)}</a></td><td class="r">${p.nota}</td><td class="r">${rp(p.total)}</td><td class="r">${rp(p.belumBayar)}</td></tr>`).join(''):'<tr><td colspan="4" class="note">Belum ada nota.</td></tr>'}</tbody></table></div><p class="note">Klik nama pelanggan untuk melihat rekapnya saja.</p>`;
+    $('#rekap').innerHTML=`<div class="stat"><div><b>${rp(j.omzet)}</b><span>Total nota (tidak termasuk batal)</span></div><div><b>${rp(j.lunas)}</b><span>Lunas</span></div><div><b>${rp(j.dp)}</b><span>DP / sebagian</span></div><div><b>${rp(j.belumBayar)}</b><span>Belum bayar (piutang)</span></div><div><b>${j.nota.length}</b><span>Nota terbit (${j.batal} batal)</span></div><div><b>${Object.values(st).reduce((a,b)=>a+(+b),0)}</b><span>Order masuk</span></div></div>
+    ${pelTbl}
+    <h3>Daftar nota</h3><div class="tablewrap"><table class="plain"><thead><tr><th>No. Nota</th><th>Tanggal</th><th>Pelanggan</th><th>Pembayaran</th><th>Status</th><th class="r">Total</th></tr></thead><tbody>${j.nota.length?j.nota.map(n=>`<tr><td>${esc(n.noNota)}</td><td>${fmtDate(n.tgl)}</td><td>${esc(n.nama)}</td><td>${n.bayar}</td><td>${n.status}</td><td class="r">${rp(n.total)}</td></tr>`).join(''):'<tr><td colspan="6" class="note">Belum ada nota.</td></tr>'}</tbody></table></div>
     <h3>Barang terlaris (berdasarkan nilai)</h3><div class="tablewrap"><table class="plain"><thead><tr><th>Barang</th><th class="r">Jumlah</th><th class="r">Nilai</th></tr></thead><tbody>${j.topBarang.length?j.topBarang.map(t=>`<tr><td>${esc(t.nama)}</td><td class="r">${(+t.qty).toLocaleString('id-ID')} ${esc(t.satuan)}</td><td class="r">${rp(+t.nilai)}</td></tr>`).join(''):'<tr><td colspan="3" class="note">Belum ada data.</td></tr>'}</tbody></table></div>`;
   }catch(e){toast(e.message)}
 }

@@ -133,32 +133,42 @@ if($act==='cancel'&&$post){
 }
 
 /* ---------- rekap ---------- */
+function pel_filter(): array {
+  $q=trim((string)($_GET['q']??''));if($q==='') return ['',[]];
+  $q=str_replace(['\\','%','_'],['\\\\','\\%','\\_'],mb_substr($q,0,60));
+  return [' AND o.nama LIKE ?',['%'.$q.'%']];
+}
 function month_range(): array {
-  $b=$_GET['bulan']??date('Y-m');if(!preg_match('/^\d{4}-\d{2}$/',$b)) fail('Bulan tidak valid');
+  $b=$_GET['bulan']??date('Y-m');
+  if($b==='semua') return ['2000-01-01 00:00:00','2100-01-01 00:00:00','semua'];
+  if(!preg_match('/^\d{4}-\d{2}$/',$b)) fail('Bulan tidak valid');
   return [$b.'-01 00:00:00',date('Y-m-d H:i:s',strtotime($b.'-01 +1 month')),$b];
 }
 if($act==='rekap'){
-  [$a,$z,$b]=month_range();
-  $s=db()->prepare("SELECT o.id,o.no_nota,o.tgl_nota,o.nama,o.status,o.bayar,o.diskon,o.ongkir,(SELECT COALESCE(SUM(qty*harga),0) FROM order_items WHERE order_id=o.id) sub FROM orders o WHERE o.no_nota IS NOT NULL AND o.tgl_nota>=? AND o.tgl_nota<? ORDER BY o.tgl_nota,o.id");
-  $s->execute([$a,$z]);$nota=[];$omzet=0;$bb=0;$dp=0;$lunas=0;$batal=0;
+  [$a,$z,$b]=month_range();[$pfs,$pfp]=pel_filter();
+  $s=db()->prepare("SELECT o.id,o.no_nota,o.tgl_nota,o.nama,o.status,o.bayar,o.diskon,o.ongkir,(SELECT COALESCE(SUM(qty*harga),0) FROM order_items WHERE order_id=o.id) sub FROM orders o WHERE o.no_nota IS NOT NULL AND o.tgl_nota>=? AND o.tgl_nota<?".$pfs." ORDER BY o.tgl_nota,o.id");
+  $s->execute(array_merge([$a,$z],$pfp));$nota=[];$pel=[];$omzet=0;$bb=0;$dp=0;$lunas=0;$batal=0;
   foreach($s->fetchAll() as $r){
     $t=(float)$r['sub']-(float)$r['diskon']+(float)$r['ongkir'];
     $nota[]=['noNota'=>$r['no_nota'],'tgl'=>strtotime($r['tgl_nota'])*1000,'nama'=>$r['nama'],'status'=>$r['status'],'bayar'=>$r['bayar'],'total'=>$t];
     if($r['status']==='Batal'){$batal++;continue;}
+    $k=mb_strtolower(trim($r['nama']));if(!isset($pel[$k]))$pel[$k]=['nama'=>$r['nama'],'nota'=>0,'total'=>0,'belumBayar'=>0];
+    $pel[$k]['nota']++;$pel[$k]['total']+=$t;if($r['bayar']!=='Lunas')$pel[$k]['belumBayar']+=$t;
     $omzet+=$t;if($r['bayar']==='Lunas')$lunas+=$t;elseif($r['bayar']==='DP')$dp+=$t;else $bb+=$t;
   }
-  $s=db()->prepare("SELECT LOWER(i.nama) k,MIN(i.nama) nama,MIN(i.satuan) satuan,SUM(i.qty) qty,SUM(i.qty*i.harga) nilai FROM order_items i JOIN orders o ON o.id=i.order_id WHERE o.no_nota IS NOT NULL AND o.status<>'Batal' AND o.tgl_nota>=? AND o.tgl_nota<? GROUP BY LOWER(i.nama) ORDER BY nilai DESC LIMIT 10");
-  $s->execute([$a,$z]);
-  $c=db()->prepare("SELECT status,COUNT(*) n FROM orders WHERE created_at>=? AND created_at<? GROUP BY status");$c->execute([$a,$z]);
-  json_out(['bulan'=>$b,'omzet'=>$omzet,'lunas'=>$lunas,'dp'=>$dp,'belumBayar'=>$bb,'batal'=>$batal,'nota'=>$nota,'topBarang'=>$s->fetchAll(),'orderPerStatus'=>$c->fetchAll(PDO::FETCH_KEY_PAIR)]);
+  $s=db()->prepare("SELECT LOWER(i.nama) k,MIN(i.nama) nama,MIN(i.satuan) satuan,SUM(i.qty) qty,SUM(i.qty*i.harga) nilai FROM order_items i JOIN orders o ON o.id=i.order_id WHERE o.no_nota IS NOT NULL AND o.status<>'Batal' AND o.tgl_nota>=? AND o.tgl_nota<?".$pfs." GROUP BY LOWER(i.nama) ORDER BY nilai DESC LIMIT 10");
+  $s->execute(array_merge([$a,$z],$pfp));
+  $c=db()->prepare("SELECT status,COUNT(*) n FROM orders o WHERE o.created_at>=? AND o.created_at<?".$pfs." GROUP BY o.status");$c->execute(array_merge([$a,$z],$pfp));
+  uasort($pel,fn($x,$y)=>$y['total']<=>$x['total']);
+  json_out(['bulan'=>$b,'perPelanggan'=>array_values($pel),'omzet'=>$omzet,'lunas'=>$lunas,'dp'=>$dp,'belumBayar'=>$bb,'batal'=>$batal,'nota'=>$nota,'topBarang'=>$s->fetchAll(),'orderPerStatus'=>$c->fetchAll(PDO::FETCH_KEY_PAIR)]);
 }
 if($act==='export_csv'){
-  [$a,$z,$b]=month_range();
+  [$a,$z,$b]=month_range();[$pfs,$pfp]=pel_filter();
   header('Content-Type: text/csv; charset=utf-8');header('Content-Disposition: attachment; filename="rekap-nota-'.$b.'.csv"');
   $out=fopen('php://output','w');fwrite($out,"\xEF\xBB\xBF");
   $row=fn($r)=>fputcsv($out,$r,';');
   $row(['No Nota','Tanggal','Pelanggan','Barang','Jumlah','Satuan','Harga Satuan','Subtotal','Diskon Nota','Ongkir Nota','Total Nota','Pembayaran','Status']);
-  $s=db()->prepare("SELECT o.*,(SELECT COALESCE(SUM(qty*harga),0) FROM order_items WHERE order_id=o.id) sub FROM orders o WHERE o.no_nota IS NOT NULL AND o.tgl_nota>=? AND o.tgl_nota<? ORDER BY o.tgl_nota,o.id");$s->execute([$a,$z]);
+  $s=db()->prepare("SELECT o.*,(SELECT COALESCE(SUM(qty*harga),0) FROM order_items WHERE order_id=o.id) sub FROM orders o WHERE o.no_nota IS NOT NULL AND o.tgl_nota>=? AND o.tgl_nota<?".$pfs." ORDER BY o.tgl_nota,o.id");$s->execute(array_merge([$a,$z],$pfp));
   $it=db()->prepare("SELECT nama,qty,satuan,harga FROM order_items WHERE order_id=? ORDER BY urut,id");
   foreach($s->fetchAll() as $o){
     $tot=(float)$o['sub']-(float)$o['diskon']+(float)$o['ongkir'];$it->execute([$o['id']]);$first=true;
